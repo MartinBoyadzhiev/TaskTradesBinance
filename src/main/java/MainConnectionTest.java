@@ -1,6 +1,5 @@
 import com.google.gson.Gson;
 import dto.OrderBookSnapshot;
-import org.java_websocket.client.WebSocketClient;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,19 +35,15 @@ public class MainConnectionTest {
         LocalOrderBook orderBook = new LocalOrderBook();
         orderBook.setLastUpdateID(snapshot.lastUpdateID());
 
-        snapshot.asks().forEach(ask -> {
-            orderBook.getAsks().put(
-                    Double.parseDouble(ask.get(0)),
-                    Double.parseDouble(ask.get(1))
-            );
-        });
+        snapshot.asks().forEach(ask -> orderBook.getAsks().put(
+                Double.parseDouble(ask.getFirst()),
+                Double.parseDouble(ask.get(1))
+        ));
 
-        snapshot.bids().forEach(bid -> {
-            orderBook.getBids().put(
-                    Double.parseDouble(bid.get(0)),
-                    Double.parseDouble(bid.get(1))
-            );
-        });
+        snapshot.bids().forEach(bid -> orderBook.getBids().put(
+                Double.parseDouble(bid.getFirst()),
+                Double.parseDouble(bid.get(1))
+        ));
 
         System.out.println(orderBook.midPrice());
     }
