@@ -4,8 +4,8 @@ import java.util.TreeMap;
 
 public class LocalOrderBook {
     private long lastUpdateID;
-    private Map<Double, Double> bids = new TreeMap<>(Collections.reverseOrder());
-    private Map<Double, Double> asks = new TreeMap<>();
+    private final TreeMap<Double, Double> bids = new TreeMap<>(Collections.reverseOrder());
+    private final TreeMap<Double, Double> asks = new TreeMap<>();
 
     public LocalOrderBook() {}
 
@@ -23,5 +23,9 @@ public class LocalOrderBook {
 
     public void setLastUpdateID(long lastUpdateID) {
         this.lastUpdateID = lastUpdateID;
+    }
+
+    public double midPrice() {
+        return (this.bids.firstKey() + this.asks.firstKey()) / 2;
     }
 }

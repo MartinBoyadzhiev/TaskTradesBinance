@@ -1,15 +1,23 @@
 import com.google.gson.Gson;
 import dto.OrderBookSnapshot;
+import org.java_websocket.client.WebSocketClient;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class MainConnectionTest {
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
 
+//        WebSocket Stream
+        String wsUrl = "wss://stream.binance.com:9443/ws/btcusdt@depth@100ms";
+        WebSocketDepthClient wsClient = new WebSocketDepthClient(wsUrl);
+        wsClient.connect();
+
+//        Snapshot request
         HttpClient httpClient = HttpClient.newHttpClient();
 
         String url = "https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=100";
@@ -42,7 +50,6 @@ public class MainConnectionTest {
             );
         });
 
-        System.out.println();
-
+        System.out.println(orderBook.midPrice());
     }
 }
