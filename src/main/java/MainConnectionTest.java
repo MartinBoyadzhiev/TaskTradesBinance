@@ -10,11 +10,15 @@ import java.net.http.HttpResponse;
 
 public class MainConnectionTest {
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
+//        Mapper
+        Gson gson = new Gson();
 
 //        WebSocket Stream
         String wsUrl = "wss://stream.binance.com:9443/ws/btcusdt@depth@100ms";
         WebSocketDepthClient wsClient = new WebSocketDepthClient(wsUrl);
         wsClient.connect();
+
+//TODO buffer
 
 //        Snapshot request
         HttpClient httpClient = HttpClient.newHttpClient();
@@ -29,7 +33,6 @@ public class MainConnectionTest {
         HttpResponse<String> httpResponse = httpClient.
                 send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-        Gson gson = new Gson();
         OrderBookSnapshot snapshot = gson.fromJson(httpResponse.body(), OrderBookSnapshot.class);
 
         LocalOrderBook orderBook = new LocalOrderBook();
