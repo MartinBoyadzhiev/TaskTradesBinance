@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketDepthClient extends WebSocketClient {
 
-    private LinkedBlockingQueue<BookUpdate> buffer;
+    private final LinkedBlockingQueue<BookUpdate> buffer;
     private final Gson gson = new Gson();
     private final AtomicBoolean hasNewUpdates;
 
