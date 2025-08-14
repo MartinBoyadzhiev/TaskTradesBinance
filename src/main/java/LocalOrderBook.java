@@ -10,7 +10,7 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 public class LocalOrderBook {
-    private final String SNAPSHOT_URL = "https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=100";
+    private final String SNAPSHOT_URL = "https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000";
     private long lastUpdateID;
     private final TreeMap<Double, Double> asks = new TreeMap<>();
     private final TreeMap<Double, Double> bids = new TreeMap<>(Collections.reverseOrder());
@@ -39,7 +39,7 @@ public class LocalOrderBook {
             lastUpdateID = update.u();
             return true;
         }
-//        System.out.println("_______________________________________________________________");
+        System.out.println("_______________________________________________________________");
         return false;
     }
 
@@ -88,6 +88,67 @@ public class LocalOrderBook {
                 target.put(price, volume);
             }
         }
+    }
+
+    public double calculateVWAPAsks(double amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Incorrect input amount for VWAP in asks.");
+        }
+
+        double originalAmount = amount;
+        double sum = 0;
+
+        for (Map.Entry<Double, Double> entry : asks.entrySet()) {
+            double price = entry.getKey();
+            double volume = entry.getValue();
+
+            if (volume >= amount) {
+                sum += amount * price;
+                amount = 0;
+                break;
+            } else {
+                sum += volume * price;
+                amount -= volume;
+            }
+        }
+
+        if (amount > 0 ) {
+            return Double.NaN;
+        }
+
+        return sum / originalAmount;
+    }
+
+    public double calculateVWAPBids(double amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Incorrect input amount for VWAP in bids.");
+        }
+
+        double originalAmount = amount;
+        double sum = 0;
+
+        for (Map.Entry<Double, Double> entry : bids.entrySet()) {
+            double price = entry.getKey();
+            double volume = entry.getValue();
+
+            if (volume >= amount) {
+                sum += amount * price;
+                amount = 0;
+                break;
+            } else {
+                sum += volume * price;
+                amount -= volume;
+            }
+        }
+
+        if (amount > 0 ) {
+
+            return Double.NaN;
+        }
+
+        return sum / originalAmount;
     }
 
     private void clearBook() {

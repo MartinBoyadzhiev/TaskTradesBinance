@@ -42,6 +42,8 @@ public class BookConsumer extends Thread {
     private void doCalculations() {
         if (System.currentTimeMillis() - lastCalculationTime > 1000) {
             logger.info("Mid price is -> {}", orderBook.midPrice());
+            logger.info("Asks VWAP for {} BTC is {}", 10, orderBook.calculateVWAPAsks(10));
+            logger.info("Bids VWAP for {} BTC is {}", 10, orderBook.calculateVWAPBids(10));
             lastCalculationTime = System.currentTimeMillis();
         }
     }
