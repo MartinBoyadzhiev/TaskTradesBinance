@@ -1,13 +1,23 @@
+import com.google.gson.Gson;
+import dto.BookUpdate;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketDepthClient extends WebSocketClient {
 
-    public WebSocketDepthClient(String wsUrl) throws URISyntaxException {
+    private LinkedBlockingQueue<BookUpdate> buffer;
+    private final Gson gson = new Gson();
+    private final AtomicBoolean hasNewUpdates;
+
+    public WebSocketDepthClient(String wsUrl, LinkedBlockingQueue<BookUpdate> buffer, AtomicBoolean hasNewUpdates) throws URISyntaxException {
         super(new URI(wsUrl));
+        this.buffer = buffer;
+        this.hasNewUpdates = hasNewUpdates;
     }
 
     @Override
@@ -17,7 +27,9 @@ public class WebSocketDepthClient extends WebSocketClient {
 
     @Override
     public void onMessage(String s) {
-        System.out.println("Message " + s);
+        BookUpdate update = gson.fromJson(s, BookUpdate.class);
+        buffer.offer(update);
+        this.hasNewUpdates.set(true);
     }
 
     @Override
