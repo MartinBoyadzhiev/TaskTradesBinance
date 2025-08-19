@@ -1,10 +1,12 @@
 import com.google.gson.Gson;
 import dto.BookUpdate;
+import dto.StreamMessage;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -12,12 +14,14 @@ public class WebSocketDepthClient extends WebSocketClient {
 
     private final LinkedBlockingQueue<BookUpdate> buffer;
     private final Gson gson = new Gson();
-    private final AtomicBoolean hasNewUpdates;
+    private final ConcurrentHashMap<String, AtomicBoolean> flagHandler;
 
-    public WebSocketDepthClient(String wsUrl, LinkedBlockingQueue<BookUpdate> buffer, AtomicBoolean hasNewUpdates) throws URISyntaxException {
+    public WebSocketDepthClient(String wsUrl,
+                                LinkedBlockingQueue<BookUpdate> buffer,
+                                ConcurrentHashMap<String, AtomicBoolean> flags) throws URISyntaxException {
         super(new URI(wsUrl));
         this.buffer = buffer;
-        this.hasNewUpdates = hasNewUpdates;
+        this.flagHandler = flags;
     }
 
     @Override
@@ -27,9 +31,13 @@ public class WebSocketDepthClient extends WebSocketClient {
 
     @Override
     public void onMessage(String s) {
-        BookUpdate update = gson.fromJson(s, BookUpdate.class);
+        StreamMessage message = gson.fromJson(s, StreamMessage.class);
+        BookUpdate update = message.data();
         buffer.offer(update);
-        this.hasNewUpdates.set(true);
+        this.flagHandler.computeIfPresent(message.stream().split("@")[0], (k, flag) -> {
+            flag.set(true);
+            return flag;
+        });
     }
 
     @Override

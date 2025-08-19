@@ -10,13 +10,15 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 public class LocalOrderBook {
-    private final String SNAPSHOT_URL = "https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000";
+    private final String SNAPSHOT_TEMPLATE = "https://api.binance.com/api/v3/depth?symbol=%s&limit=1000";
+    private final String streamName;
     private long lastUpdateID;
     private final TreeMap<Double, Double> asks = new TreeMap<>();
     private final TreeMap<Double, Double> bids = new TreeMap<>(Collections.reverseOrder());
     private final Gson gson = new Gson();
 
-    public LocalOrderBook() {
+    public LocalOrderBook(String streamName) {
+        this.streamName = streamName;
     }
 
     public long getLastUpdateID() {
@@ -63,7 +65,7 @@ public class LocalOrderBook {
     private OrderBookSnapshot getSnapshot() {
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(SNAPSHOT_URL))
+                .uri(URI.create(formatSnapshotURL()))
                 .GET()
                 .build();
 
@@ -74,8 +76,11 @@ public class LocalOrderBook {
         } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
-
         return gson.fromJson(httpResponse.body(), OrderBookSnapshot.class);
+    }
+
+    private String formatSnapshotURL() {
+        return String.format(SNAPSHOT_TEMPLATE, streamName);
     }
 
     private void applyUpdates(TreeMap<Double, Double> target, List<List<String>> updateList) {
@@ -116,7 +121,6 @@ public class LocalOrderBook {
         if (amount > 0 ) {
             return Double.NaN;
         }
-
         return sum / originalAmount;
     }
 
@@ -144,10 +148,8 @@ public class LocalOrderBook {
         }
 
         if (amount > 0 ) {
-
             return Double.NaN;
         }
-
         return sum / originalAmount;
     }
 
