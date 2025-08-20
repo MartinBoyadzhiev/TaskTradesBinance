@@ -3,50 +3,48 @@ import dto.BookUpdate;
 import dto.StreamMessage;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketDepthClient extends WebSocketClient {
-
-    private final LinkedBlockingQueue<BookUpdate> buffer;
     private final Gson gson = new Gson();
-    private final ConcurrentHashMap<String, AtomicBoolean> flagHandler;
+    private final ConcurrentHashMap<String, QueueHandler> queueHandlerMap;
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketDepthClient.class);
 
-    public WebSocketDepthClient(String wsUrl,
-                                LinkedBlockingQueue<BookUpdate> buffer,
-                                ConcurrentHashMap<String, AtomicBoolean> flags) throws URISyntaxException {
+    public WebSocketDepthClient(String wsUrl, ConcurrentHashMap<String, QueueHandler> queueHandlerMap) throws URISyntaxException {
         super(new URI(wsUrl));
-        this.buffer = buffer;
-        this.flagHandler = flags;
+        this.queueHandlerMap = queueHandlerMap;
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        System.out.println("Connected");
+        logger.info("Successful connection");
     }
 
     @Override
     public void onMessage(String s) {
         StreamMessage message = gson.fromJson(s, StreamMessage.class);
         BookUpdate update = message.data();
-        buffer.offer(update);
-        this.flagHandler.computeIfPresent(message.stream().split("@")[0], (k, flag) -> {
-            flag.set(true);
-            return flag;
+
+        this.queueHandlerMap.computeIfPresent(message.stream().split("@")[0], (k, handler) -> {
+            handler.getStreamQueue().offer(update);
+            handler.getHasData().set(true);
+            return handler;
         });
     }
 
     @Override
     public void onClose(int code, String reason, boolean b) {
-        System.out.println("Connection closed " + reason);
+        //        TODO Reconnection logic
+        logger.warn("WS closed: code={} reason={} remote={}", code, reason, b);
     }
 
     @Override
     public void onError(Exception e) {
-        e.printStackTrace();
+        //        TODO Reconnection logic
+        logger.error("WebSocket error on stream: {}", e.getMessage(), e);
     }
 }
