@@ -1,4 +1,5 @@
 import dto.BookUpdate;
+import handles.QueueHandle;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +14,7 @@ public class MainConnectionTest {
                 .toList();
         String webSocketURL = formatWsURL(subscriptionPairs);
 
-        ConcurrentHashMap<String, QueueHandler> queueHandlerMap = initiateQueueMap(subscriptionPairs);
+        ConcurrentHashMap<String, QueueHandle> queueHandlerMap = initiateQueueMap(subscriptionPairs);
 
         WebSocketDepthClient wsClient = new WebSocketDepthClient(webSocketURL, queueHandlerMap);
         wsClient.setConnectionLostTimeout(0);
@@ -23,12 +24,12 @@ public class MainConnectionTest {
         bookConsumer.start();
     }
 
-    private static ConcurrentHashMap<String,QueueHandler> initiateQueueMap(List<String> subscriptionPairs) {
-        ConcurrentHashMap<String, QueueHandler> queueHandlerMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, QueueHandle> initiateQueueMap(List<String> subscriptionPairs) {
+        ConcurrentHashMap<String, QueueHandle> queueHandlerMap = new ConcurrentHashMap<>();
 
         for (String subscriptionPair : subscriptionPairs) {
             LinkedBlockingQueue<BookUpdate> queue = new LinkedBlockingQueue<>();
-            QueueHandler handler = new QueueHandler(subscriptionPair, queue);
+            QueueHandle handler = new QueueHandle(subscriptionPair, queue);
             queueHandlerMap.put(subscriptionPair, handler);
         }
         return queueHandlerMap;

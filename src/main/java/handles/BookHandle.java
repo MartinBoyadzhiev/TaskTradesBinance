@@ -1,3 +1,5 @@
+package handles;
+
 import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.OrderBookSnapshot;
@@ -9,14 +11,15 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.TreeMap;
 
-public class BookHandler {
+public class BookHandle {
     private final String streamName;
     private final LocalOrderBook localBook;
     private final Gson gson = new Gson();
 
-    public BookHandler(String streamName) {
+    public BookHandle(String streamName) {
         this.localBook = new LocalOrderBook(streamName);
         this.streamName = streamName;
+
     }
 
     public LocalOrderBook getLocalBook() {

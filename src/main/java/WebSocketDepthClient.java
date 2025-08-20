@@ -1,6 +1,7 @@
 import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.StreamMessage;
+import handles.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -11,10 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketDepthClient extends WebSocketClient {
     private final Gson gson = new Gson();
-    private final ConcurrentHashMap<String, QueueHandler> queueHandlerMap;
+    private final ConcurrentHashMap<String, QueueHandle> queueHandlerMap;
     private static final Logger logger = LoggerFactory.getLogger(WebSocketDepthClient.class);
 
-    public WebSocketDepthClient(String wsUrl, ConcurrentHashMap<String, QueueHandler> queueHandlerMap) throws URISyntaxException {
+    public WebSocketDepthClient(String wsUrl, ConcurrentHashMap<String, QueueHandle> queueHandlerMap) throws URISyntaxException {
         super(new URI(wsUrl));
         this.queueHandlerMap = queueHandlerMap;
     }

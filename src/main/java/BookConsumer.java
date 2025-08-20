@@ -1,32 +1,36 @@
 import dto.BookUpdate;
+import handles.BookHandle;
+import handles.LocalOrderBook;
+import handles.QueueHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BookConsumer extends Thread {
-    private final ConcurrentHashMap<String, QueueHandler> queueHandlerMap;
-    private HashMap<String, BookHandler> books;
+    private final ConcurrentHashMap<String, QueueHandle> queueHandlerMap;
+    private HashMap<String, BookHandle> books;
     private static final Logger logger = LoggerFactory.getLogger(BookConsumer.class);
     private final HashMap<String, Long> lastCalculationTimeMap = new HashMap<>();
 
-    public BookConsumer(ConcurrentHashMap<String, QueueHandler> queueHandlerMap) {
+    public BookConsumer(ConcurrentHashMap<String, QueueHandle> queueHandlerMap) {
         this.queueHandlerMap = queueHandlerMap;
+        LocalOrderBook orderBook = new LocalOrderBook("s");
     }
 
     @Override
     public void run() {
         this.books = new HashMap<>();
         for (String stream : queueHandlerMap.keySet()) {
-            books.put(stream, new BookHandler(stream));
+            books.put(stream, new BookHandle(stream));
         }
 
         while (true) {
-            for (QueueHandler value : queueHandlerMap.values()) {
+            for (QueueHandle value : queueHandlerMap.values()) {
                 if (value.getStreamQueue().peek() != null) {
                     try {
                         BookUpdate updateData = value.getStreamQueue().take();
-                        BookHandler bookHandler = books.get(value.getStreamName());
+                        BookHandle bookHandler = books.get(value.getStreamName());
                         bookHandler.update(updateData);
                         doCalculations(bookHandler.getLocalBook());
                     } catch (InterruptedException e) {
