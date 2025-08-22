@@ -3,13 +3,14 @@ package handles;
 import java.util.*;
 
 public class LocalOrderBook {
-    private final String symbol;
+
+    private final String pairName;
     private long lastUpdateID = -1;
     private final TreeMap<Double, Double> asks = new TreeMap<>();
     private final TreeMap<Double, Double> bids = new TreeMap<>(Collections.reverseOrder());
 
-    public LocalOrderBook(String symbol) {
-        this.symbol = symbol;
+    public LocalOrderBook(String pairName) {
+        this.pairName = pairName;
     }
 
     public TreeMap<Double, Double> getAsks() {
@@ -20,8 +21,8 @@ public class LocalOrderBook {
         return bids;
     }
 
-    public String getSymbol() {
-        return symbol;
+    public String getPairName() {
+        return pairName;
     }
 
     public long getLastUpdateID() {
@@ -32,7 +33,7 @@ public class LocalOrderBook {
         this.lastUpdateID = lastUpdateID;
     }
 
-    public double midPrice() {
+    public double getMidPrice() {
         return (this.bids.firstKey() + this.asks.firstKey()) / 2;
     }
 

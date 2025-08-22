@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class QueueHandle {
+
     private final String streamName;
     private final AtomicBoolean hasData;
     private final LinkedBlockingQueue<BookUpdate> streamQueue;

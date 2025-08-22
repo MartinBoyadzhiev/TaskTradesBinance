@@ -3,6 +3,7 @@ package handles;
 import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.OrderBookSnapshot;
+import enums.EnvVar;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,48 +13,51 @@ import java.util.List;
 import java.util.TreeMap;
 
 public class BookHandle {
-    private final String streamName;
-    private final LocalOrderBook localBook;
+
+    private final String pairName;
+    private final LocalOrderBook book;
     private final Gson gson = new Gson();
 
-    public BookHandle(String streamName) {
-        this.localBook = new LocalOrderBook(streamName);
-        this.streamName = streamName;
-
+    public BookHandle(String pairName) {
+        this.book = new LocalOrderBook(pairName);
+        this.pairName = pairName;
     }
 
-    public LocalOrderBook getLocalBook() {
-        return localBook;
+    public LocalOrderBook getBook() {
+        return this.book;
     }
 
-    public void update(BookUpdate updateData) {
-        if (updateData.U() > this.localBook.getLastUpdateID() + 1) {
-            System.out.println("Last updateData ID: " + this.localBook.getLastUpdateID() + " U: " + updateData.U() + " u: " + updateData.u());
-            syncOrderBook();
+    public void handleUpdateData(BookUpdate updateData) {
+        if (updateData.U() > this.book.getLastUpdateID() + 1) {
+            System.out.println("Last updateData ID: " + this.book.getLastUpdateID() + " U: " + updateData.U() + " u: " + updateData.u());
+            onSnapshot();
         }
 
-        if (updateData.u() <= localBook.getLastUpdateID()) {
+        if (updateData.u() <= book.getLastUpdateID()) {
             System.out.println("Skipping U: " + updateData.U() + " u: " + updateData.u());
             return;
         }
-
-        applyUpdates(localBook.getAsks(), updateData.a());
-        applyUpdates(localBook.getBids(), updateData.b());
-        localBook.setLastUpdateID(updateData.u());
+        onUpdate(updateData);
     }
 
-    public void syncOrderBook() {
+    private void onUpdate(BookUpdate updateData) {
+        applyUpdates(book.getAsks(), updateData.a());
+        applyUpdates(book.getBids(), updateData.b());
+        this.book.setLastUpdateID(updateData.u());
+    }
+
+    private void onSnapshot() {
         clearBook();
-        OrderBookSnapshot snapshot = this.getSnapshot();
+        OrderBookSnapshot snapshot = getSnapshot();
 
-        this.localBook.setLastUpdateID(snapshot.lastUpdateId());
+        this.book.setLastUpdateID(snapshot.lastUpdateId());
 
-        snapshot.asks().forEach(ask -> this.localBook.getAsks().put(
+        snapshot.asks().forEach(ask -> this.book.getAsks().put(
                 Double.parseDouble(ask.getFirst()),
                 Double.parseDouble(ask.get(1))
         ));
 
-        snapshot.bids().forEach(bid -> this.localBook.getBids().put(
+        snapshot.bids().forEach(bid -> this.book.getBids().put(
                 Double.parseDouble(bid.getFirst()),
                 Double.parseDouble(bid.get(1))
         ));
@@ -89,13 +93,13 @@ public class BookHandle {
     }
 
     private void clearBook() {
-        this.localBook.setLastUpdateID(-1);
-        this.localBook.getAsks().clear();
-        this.localBook.getBids().clear();
+        this.book.setLastUpdateID(-1);
+        this.book.getAsks().clear();
+        this.book.getBids().clear();
     }
 
     private String formatSnapshotURL() {
-        return String.format(System.getenv("REST_ENDPOINT_TEMPLATE"),
-                this.streamName.toUpperCase(), System.getenv("SNAPSHOT_LEVELS"));
+        return String.format(EnvVar.REST_ENDPOINT_TEMPLATE.get(),
+                this.pairName.toUpperCase(), EnvVar.SNAPSHOT_LEVELS.getInt());
     }
 }

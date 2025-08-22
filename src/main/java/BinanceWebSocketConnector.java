@@ -1,6 +1,7 @@
 import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.StreamMessage;
+import enums.EnvVar;
 import handles.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -8,15 +9,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-public class WebSocketDepthClient extends WebSocketClient {
-    private final Gson gson = new Gson();
+public class BinanceWebSocketConnector extends WebSocketClient {
+
     private final ConcurrentHashMap<String, QueueHandle> queueHandlerMap;
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketDepthClient.class);
+    private final Logger logger = LoggerFactory.getLogger(BinanceWebSocketConnector.class);
+    private final Gson gson = new Gson();
 
-    public WebSocketDepthClient(String wsUrl, ConcurrentHashMap<String, QueueHandle> queueHandlerMap) throws URISyntaxException {
-        super(new URI(wsUrl));
+    public BinanceWebSocketConnector(ConcurrentHashMap<String, QueueHandle> queueHandlerMap) throws URISyntaxException {
+        super(new URI(formatWebSocketURL()));
         this.queueHandlerMap = queueHandlerMap;
     }
 
@@ -47,5 +52,13 @@ public class WebSocketDepthClient extends WebSocketClient {
     public void onError(Exception e) {
         //        TODO Reconnection logic
         logger.error("WebSocket error on stream: {}", e.getMessage(), e);
+    }
+
+    private static String formatWebSocketURL() {
+        List<String> subscriptionPairs = Arrays.stream(EnvVar.BINANCE_PAIR.get().split(",")).toList();
+        StringBuilder sb = new StringBuilder("wss://stream.binance.com:9443/stream?streams=");
+        sb.append(subscriptionPairs.stream().map(s -> s + "@depth@100ms")
+                .collect(Collectors.joining("/")));
+        return sb.toString();
     }
 }
