@@ -1,13 +1,16 @@
 package dto;
 
-import java.util.List;
+public abstract class BookUpdate {
+    private String pairName;
 
-public record BookUpdate(
-        String e,
-        long E,
-        String s,
-        long U,
-        long u,
-        List<List<String>> b,
-        List<List<String>> a
-) {}
+    public BookUpdate() {
+    }
+
+    public String getPairName() {
+        return pairName;
+    }
+
+    public void setPairName(String pairName) {
+        this.pairName = pairName;
+    }
+}

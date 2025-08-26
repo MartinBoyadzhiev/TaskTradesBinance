@@ -1,6 +1,8 @@
 import com.google.gson.Gson;
+import dto.StreamData;
 import dto.BookUpdate;
 import dto.StreamMessage;
+import dto.BinanceBookUpdate;
 import enums.EnvVar;
 import handles.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
@@ -33,7 +35,9 @@ public class BinanceWebSocketConnector extends WebSocketClient {
     @Override
     public void onMessage(String s) {
         StreamMessage message = gson.fromJson(s, StreamMessage.class);
-        BookUpdate update = message.data();
+        StreamData data = message.data();
+
+        BookUpdate update = new BinanceBookUpdate(data.s(), data.e(), data.E(), data.U(), data.u(), data.a(), data.b());
 
         this.queueHandlerMap.computeIfPresent(message.stream().split("@")[0], (k, handler) -> {
             handler.getStreamQueue().offer(update);

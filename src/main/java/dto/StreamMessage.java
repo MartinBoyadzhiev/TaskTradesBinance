@@ -1,4 +1,4 @@
 package dto;
 
-public record StreamMessage(String stream, BookUpdate data) {
+public record StreamMessage(String stream, StreamData data) {
 }

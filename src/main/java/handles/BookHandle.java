@@ -3,6 +3,7 @@ package handles;
 import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.OrderBookSnapshot;
+import dto.BinanceBookUpdate;
 import enums.EnvVar;
 import java.io.IOException;
 import java.net.URI;
@@ -28,22 +29,24 @@ public class BookHandle {
     }
 
     public void handleUpdateData(BookUpdate updateData) {
-        if (updateData.U() > this.book.getLastUpdateID() + 1) {
-            System.out.println("Last updateData ID: " + this.book.getLastUpdateID() + " U: " + updateData.U() + " u: " + updateData.u());
-            onSnapshot();
-        }
+        if (updateData instanceof BinanceBookUpdate update) {
+            if (update.getFirstUpdate() > this.book.getLastUpdateID() + 1) {
+                System.out.println("Last updateData ID: " + this.book.getLastUpdateID() + " U: " + update.getFirstUpdate() + " u: " + update.getLastUpdate());
+                onSnapshot();
+            }
 
-        if (updateData.u() <= book.getLastUpdateID()) {
-            System.out.println("Skipping U: " + updateData.U() + " u: " + updateData.u());
-            return;
+            if (update.getLastUpdate() <= book.getLastUpdateID()) {
+                System.out.println("Skipping U: " + update.getFirstUpdate() + " u: " + update.getLastUpdate());
+                return;
+            }
+            onUpdate(update);
         }
-        onUpdate(updateData);
     }
 
-    private void onUpdate(BookUpdate updateData) {
-        applyUpdates(book.getAsks(), updateData.a());
-        applyUpdates(book.getBids(), updateData.b());
-        this.book.setLastUpdateID(updateData.u());
+    private void onUpdate(BinanceBookUpdate updateData) {
+        applyUpdates(book.getAsks(), updateData.getAsks());
+        applyUpdates(book.getBids(), updateData.getBids());
+        this.book.setLastUpdateID(updateData.getLastUpdate());
     }
 
     private void onSnapshot() {
@@ -99,7 +102,6 @@ public class BookHandle {
     }
 
     private String formatSnapshotURL() {
-        return String.format(EnvVar.REST_ENDPOINT_TEMPLATE.get(),
-                this.pairName.toUpperCase(), EnvVar.SNAPSHOT_LEVELS.getInt());
+        return String.format(EnvVar.REST_ENDPOINT_TEMPLATE.get(), this.pairName.toUpperCase(), EnvVar.SNAPSHOT_LEVELS.getInt());
     }
 }
