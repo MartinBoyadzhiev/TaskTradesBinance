@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dto.BookUpdate;
 import dto.OrderBookSnapshot;
 import dto.BinanceBookUpdate;
+import dto.OrderLevel;
 import enums.EnvVar;
 import java.io.IOException;
 import java.net.URI;
@@ -13,13 +14,13 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.TreeMap;
 
-public class BookHandle {
+public class BookHandler {
 
     private final String pairName;
     private final LocalOrderBook book;
     private final Gson gson = new Gson();
 
-    public BookHandle(String pairName) {
+    public BookHandler(String pairName) {
         this.book = new LocalOrderBook(pairName);
         this.pairName = pairName;
     }
@@ -83,14 +84,14 @@ public class BookHandle {
         return gson.fromJson(httpResponse.body(), OrderBookSnapshot.class);
     }
 
-    private void applyUpdates(TreeMap<Double, Double> target, List<List<String>> updateList) {
-        for (List<String> level : updateList) {
-            double price = Double.parseDouble(level.getFirst());
-            double volume = Double.parseDouble(level.getLast());
-            if (volume == 0) {
+    private void applyUpdates(TreeMap<Double, Double> target, List<OrderLevel> updateList) {
+        for (OrderLevel level : updateList) {
+            double price = level.price();
+            double qty = level.qty();
+            if (qty == 0) {
                 target.remove(price);
             } else {
-                target.put(price, volume);
+                target.put(price, qty);
             }
         }
     }

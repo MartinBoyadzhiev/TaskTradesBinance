@@ -1,8 +1,5 @@
 import com.google.gson.Gson;
-import dto.StreamData;
-import dto.BookUpdate;
-import dto.StreamMessage;
-import dto.BinanceBookUpdate;
+import dto.*;
 import enums.EnvVar;
 import handles.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
@@ -36,12 +33,12 @@ public class BinanceWebSocketConnector extends WebSocketClient {
     public void onMessage(String s) {
         StreamMessage message = gson.fromJson(s, StreamMessage.class);
         StreamData data = message.data();
-
-        BookUpdate update = new BinanceBookUpdate(data.s(), data.e(), data.E(), data.U(), data.u(), data.a(), data.b());
+        BookUpdate update = new BinanceBookUpdate(data.s(), data.U(), data.u());
+        parseLevels(data.a(), update.getAsks());
+        parseLevels(data.b(), update.getBids());
 
         this.queueHandlerMap.computeIfPresent(message.stream().split("@")[0], (k, handler) -> {
             handler.getStreamQueue().offer(update);
-            handler.getHasData().set(true);
             return handler;
         });
     }
@@ -61,8 +58,17 @@ public class BinanceWebSocketConnector extends WebSocketClient {
     private static String formatWebSocketURL() {
         List<String> subscriptionPairs = Arrays.stream(EnvVar.BINANCE_PAIR.get().split(",")).toList();
         StringBuilder sb = new StringBuilder("wss://stream.binance.com:9443/stream?streams=");
-        sb.append(subscriptionPairs.stream().map(s -> s + "@depth@100ms")
-                .collect(Collectors.joining("/")));
+        String formattedPairs = subscriptionPairs.stream().map(s -> s + "@depth@100ms")
+                .collect(Collectors.joining("/"));
+        sb.append(formattedPairs);
         return sb.toString();
+    }
+
+    private void parseLevels(List<List<String>> data, List<OrderLevel> levels) {
+        for (List<String> level : data) {
+            double price = Double.parseDouble(level.getFirst());
+            double qty = Double.parseDouble(level.get(1));
+            levels.add(new OrderLevel(price, qty));
+        }
     }
 }

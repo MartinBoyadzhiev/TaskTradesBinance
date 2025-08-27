@@ -1,5 +1,5 @@
 import dto.BookUpdate;
-import handles.BookHandle;
+import handles.BookHandler;
 import handles.LocalOrderBook;
 import handles.QueueHandle;
 import org.slf4j.Logger;
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataConsumer extends Thread {
 
     private final ConcurrentHashMap<String, QueueHandle> queueHandlerMap;
-    private final HashMap<String, BookHandle> books = new HashMap<>();
+    private final HashMap<String, BookHandler> bookHandlers = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(DataConsumer.class);
     private final HashMap<String, Long> lastCalculationTimeMap = new HashMap<>();
 
@@ -21,7 +21,7 @@ public class DataConsumer extends Thread {
     @Override
     public void run() {
         for (String pairName : queueHandlerMap.keySet()) {
-            this.books.put(pairName, new BookHandle(pairName));
+            this.bookHandlers.put(pairName, new BookHandler(pairName));
         }
 
         while (true) {
@@ -29,7 +29,7 @@ public class DataConsumer extends Thread {
                 if (queueHandle.getStreamQueue().peek() != null) {
                     try {
                         BookUpdate updateData = queueHandle.getStreamQueue().take();
-                        BookHandle bookHandler = this.books.get(queueHandle.getStreamName());
+                        BookHandler bookHandler = this.bookHandlers.get(queueHandle.getPairName());
                         bookHandler.handleUpdateData(updateData);
                         doCalculations(bookHandler.getBook());
                     } catch (InterruptedException e) {

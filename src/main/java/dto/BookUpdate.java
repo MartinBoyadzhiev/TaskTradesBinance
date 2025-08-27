@@ -1,16 +1,24 @@
 package dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class BookUpdate {
-    private String pairName;
+    private final String pairName;
+    private final List<OrderLevel> asks;
+    private final List<OrderLevel> bids;
 
-    public BookUpdate() {
-    }
-
-    public String getPairName() {
-        return pairName;
-    }
-
-    public void setPairName(String pairName) {
+    public BookUpdate(String pairName) {
         this.pairName = pairName;
+        this.asks = new ArrayList<>();
+        this.bids = new ArrayList<>();
+    }
+
+    public List<OrderLevel> getAsks() {
+        return asks;
+    }
+
+    public List<OrderLevel> getBids() {
+        return bids;
     }
 }

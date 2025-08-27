@@ -2,26 +2,19 @@ package handles;
 
 import dto.BookUpdate;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class QueueHandle {
 
-    private final String streamName;
-    private final AtomicBoolean hasData;
+    private final String pairName;
     private final LinkedBlockingQueue<BookUpdate> streamQueue;
 
-    public QueueHandle(String streamName, LinkedBlockingQueue<BookUpdate> streamQueue) {
-        this.streamName = streamName;
-        this.hasData = new AtomicBoolean();
+    public QueueHandle(String pairName, LinkedBlockingQueue<BookUpdate> streamQueue) {
+        this.pairName = pairName;
         this.streamQueue = streamQueue;
     }
 
-    public String getStreamName() {
-        return streamName;
-    }
-
-    public AtomicBoolean getHasData() {
-        return hasData;
+    public String getPairName() {
+        return pairName;
     }
 
     public LinkedBlockingQueue<BookUpdate> getStreamQueue() {
