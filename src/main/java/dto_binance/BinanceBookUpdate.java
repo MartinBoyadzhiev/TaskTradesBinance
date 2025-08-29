@@ -1,12 +1,13 @@
-package dto;
+package dto_binance;
+
+import common.dto.BookUpdate;
 
 public class BinanceBookUpdate extends BookUpdate {
 
     private final long firstUpdate;
     private final long lastUpdate;
 
-    public BinanceBookUpdate(String pairName, long firstUpdate, long lastUpdate) {
-        super(pairName);
+    public BinanceBookUpdate(long firstUpdate, long lastUpdate) {
         this.firstUpdate = firstUpdate;
         this.lastUpdate = lastUpdate;
     }

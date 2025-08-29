@@ -1,6 +1,6 @@
-package handles;
+package common;
 
-import dto.BookUpdate;
+import common.dto.BookUpdate;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class QueueHandle {

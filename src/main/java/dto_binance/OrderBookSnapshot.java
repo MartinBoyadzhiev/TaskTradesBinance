@@ -1,4 +1,4 @@
-package dto;
+package dto_binance;
 
 import java.util.List;
 

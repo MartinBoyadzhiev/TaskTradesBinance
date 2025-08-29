@@ -1,4 +1,4 @@
-package handles;
+package common;
 
 import java.util.*;
 
@@ -13,16 +13,16 @@ public class LocalOrderBook {
         this.pairName = pairName;
     }
 
+    public String getPairName() {
+        return pairName;
+    }
+
     public TreeMap<Double, Double> getAsks() {
         return asks;
     }
 
     public TreeMap<Double, Double> getBids() {
         return bids;
-    }
-
-    public String getPairName() {
-        return pairName;
     }
 
     public long getLastUpdateID() {
@@ -34,7 +34,7 @@ public class LocalOrderBook {
     }
 
     public double getMidPrice() {
-        return (this.bids.firstKey() + this.asks.firstKey()) / 2;
+        return (asks.firstKey() + bids.firstKey()) / 2;
     }
 
     public double calculateVWAPAsks(double amount) {

@@ -1,7 +1,9 @@
 import com.google.gson.Gson;
-import dto.*;
+import common.dto.BookUpdate;
+import common.dto.OrderLevel;
+import dto_binance.*;
 import enums.EnvVar;
-import handles.QueueHandle;
+import common.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -9,19 +11,20 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BinanceWebSocketConnector extends WebSocketClient {
 
-    private final ConcurrentHashMap<String, QueueHandle> queueHandlerMap;
+    private final HashMap<String, Map<String, QueueHandle>> queueHandlerMapPerExchange;
     private final Logger logger = LoggerFactory.getLogger(BinanceWebSocketConnector.class);
     private final Gson gson = new Gson();
 
-    public BinanceWebSocketConnector(ConcurrentHashMap<String, QueueHandle> queueHandlerMap) throws URISyntaxException {
+    public BinanceWebSocketConnector(HashMap<String, Map<String, QueueHandle>> queueHandlerMap) throws URISyntaxException {
         super(new URI(formatWebSocketURL()));
-        this.queueHandlerMap = queueHandlerMap;
+        this.queueHandlerMapPerExchange = queueHandlerMap;
     }
 
     @Override
@@ -33,11 +36,12 @@ public class BinanceWebSocketConnector extends WebSocketClient {
     public void onMessage(String s) {
         StreamMessage message = gson.fromJson(s, StreamMessage.class);
         StreamData data = message.data();
-        BookUpdate update = new BinanceBookUpdate(data.s(), data.U(), data.u());
+        BookUpdate update = new BinanceBookUpdate(data.U(), data.u());
         parseLevels(data.a(), update.getAsks());
         parseLevels(data.b(), update.getBids());
 
-        this.queueHandlerMap.computeIfPresent(message.stream().split("@")[0], (k, handler) -> {
+        Map<String, QueueHandle> queueHandleMap = queueHandlerMapPerExchange.get("binance");
+        queueHandleMap.computeIfPresent(message.stream().split("@")[0], (k, handler) -> {
             handler.getStreamQueue().offer(update);
             return handler;
         });

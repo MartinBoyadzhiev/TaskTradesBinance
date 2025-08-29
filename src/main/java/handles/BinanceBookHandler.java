@@ -1,10 +1,12 @@
 package handles;
 
 import com.google.gson.Gson;
-import dto.BookUpdate;
-import dto.OrderBookSnapshot;
-import dto.BinanceBookUpdate;
-import dto.OrderLevel;
+import common.BookHandler;
+import common.LocalOrderBook;
+import common.dto.BookUpdate;
+import dto_binance.OrderBookSnapshot;
+import dto_binance.BinanceBookUpdate;
+import common.dto.OrderLevel;
 import enums.EnvVar;
 import java.io.IOException;
 import java.net.URI;
@@ -14,21 +16,23 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.TreeMap;
 
-public class BookHandler {
+public class BinanceBookHandler implements BookHandler {
 
     private final String pairName;
     private final LocalOrderBook book;
     private final Gson gson = new Gson();
 
-    public BookHandler(String pairName) {
+    public BinanceBookHandler(String pairName) {
         this.book = new LocalOrderBook(pairName);
         this.pairName = pairName;
     }
 
+    @Override
     public LocalOrderBook getBook() {
         return this.book;
     }
 
+    @Override
     public void handleUpdateData(BookUpdate updateData) {
         if (updateData instanceof BinanceBookUpdate update) {
             if (update.getFirstUpdate() > this.book.getLastUpdateID() + 1) {
