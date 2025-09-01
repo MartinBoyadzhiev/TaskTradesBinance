@@ -2,7 +2,7 @@ import com.google.gson.Gson;
 import common.dto.BookUpdate;
 import common.dto.OrderLevel;
 import dto_binance.*;
-import enums.EnvVar;
+import config.Constants;
 import common.QueueHandle;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -60,7 +60,7 @@ public class BinanceWebSocketConnector extends WebSocketClient {
     }
 
     private static String formatWebSocketURL() {
-        List<String> subscriptionPairs = Arrays.stream(EnvVar.BINANCE_PAIR.get().split(",")).toList();
+        List<String> subscriptionPairs = Arrays.stream(Constants.BINANCE_PAIR.split(",")).toList();
         StringBuilder sb = new StringBuilder("wss://stream.binance.com:9443/stream?streams=");
         String formattedPairs = subscriptionPairs.stream().map(s -> s + "@depth@100ms")
                 .collect(Collectors.joining("/"));
