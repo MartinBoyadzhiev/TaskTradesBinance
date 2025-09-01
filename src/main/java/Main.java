@@ -1,5 +1,5 @@
 import common.DataConsumer;
-import enums.EnvVar;
+import config.Constants;
 import handles.BinanceBookHandler;
 import common.BookHandler;
 import common.QueueHandle;
@@ -12,8 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
     public static void main(String[] args) throws URISyntaxException {
-        List<String> subscriptionPairs = Arrays.stream(EnvVar.BINANCE_PAIR.get().split(",")).toList();
-        List<String> exchanges = Arrays.stream(System.getenv("EXCHANGES").split(",")).toList();
+        List<String> subscriptionPairs = Arrays.stream(Constants.BINANCE_PAIR.split(",")).toList();
+        List<String> exchanges = Arrays.stream(Constants.EXCHANGES.split(",")).toList();
 
         HashMap<String, Map<String, QueueHandle>> queueHandleMap = initiateQueueMap(exchanges, subscriptionPairs);
         BinanceWebSocketConnector ws = new BinanceWebSocketConnector(queueHandleMap);

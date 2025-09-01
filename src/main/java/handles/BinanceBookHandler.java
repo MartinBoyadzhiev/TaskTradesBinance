@@ -7,7 +7,7 @@ import common.dto.BookUpdate;
 import dto_binance.OrderBookSnapshot;
 import dto_binance.BinanceBookUpdate;
 import common.dto.OrderLevel;
-import enums.EnvVar;
+import config.Constants;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -107,6 +107,6 @@ public class BinanceBookHandler implements BookHandler {
     }
 
     private String formatSnapshotURL() {
-        return String.format(EnvVar.REST_ENDPOINT_TEMPLATE.get(), this.pairName.toUpperCase(), EnvVar.SNAPSHOT_LEVELS.getInt());
+        return String.format(Constants.REST_ENDPOINT_TEMPLATE, this.pairName.toUpperCase(), Constants.SNAPSHOT_LEVELS);
     }
 }

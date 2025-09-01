@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataConsumer extends Thread {
-    //    TODO two maps instead of concMap
     private final HashMap<String, Map<String, QueueHandle>> queueHandlersPerExchangeMap;
     private final HashMap<String, Map<String, BookHandler>> bookHandlersPerExchangeMap;
     private final Logger logger = LoggerFactory.getLogger(DataConsumer.class);
@@ -24,9 +24,10 @@ public class DataConsumer extends Thread {
             for (String exchange : queueHandlersPerExchangeMap.keySet()) {
                 Map<String, QueueHandle> queueHandleMap = queueHandlersPerExchangeMap.get(exchange);
                 for (Map.Entry<String, QueueHandle> queueHandleEntry : queueHandleMap.entrySet()) {
-                    if (queueHandleEntry.getValue().getStreamQueue().peek() != null) {
+                    LinkedBlockingQueue<BookUpdate> streamQueue = queueHandleEntry.getValue().getStreamQueue();
+                    if (streamQueue.peek() != null) {
                         try {
-                            BookUpdate updateData = queueHandleEntry.getValue().getStreamQueue().take();
+                            BookUpdate updateData = streamQueue.take();
                             BookHandler bookHandler = bookHandlersPerExchangeMap.get(exchange).get(queueHandleEntry.getKey());
                             bookHandler.handleUpdateData(updateData);
                             doCalculations(bookHandler.getBook());
